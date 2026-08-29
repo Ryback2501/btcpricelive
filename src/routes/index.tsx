@@ -1,24 +1,56 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { getBitcoinPriceEur } from "@/lib/bitcoin.functions";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Bitcoin en tiempo real" },
+      {
+        name: "description",
+        content: "Precio actual de Bitcoin en euros, actualizado en tiempo real.",
+      },
+      { property: "og:title", content: "Bitcoin en tiempo real" },
+      {
+        property: "og:description",
+        content: "Precio actual de Bitcoin en euros, actualizado en tiempo real.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  const fetchPrice = useServerFn(getBitcoinPriceEur);
+
+  const { data: price } = useQuery({
+    queryKey: ["bitcoin-price-eur"],
+    queryFn: fetchPrice,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: true,
+  });
+
+  const formatted =
+    typeof price === "number"
+      ? new Intl.NumberFormat("es-ES", {
+          style: "currency",
+          currency: "EUR",
+        }).format(price)
+      : "—";
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main className="flex min-h-screen items-center justify-center px-4">
+      <div className="rounded-2xl border border-border bg-card px-10 py-12 text-center shadow-lg">
+        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+          BTC / EUR
+        </p>
+        <p className="mt-2 text-5xl font-bold tracking-tight text-card-foreground">
+          {formatted}
+        </p>
+      </div>
+    </main>
   );
 }
