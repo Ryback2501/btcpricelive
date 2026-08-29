@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { getBitcoinPriceEur } from "@/lib/bitcoin.functions";
 
 export const Route = createFileRoute("/")({
@@ -24,11 +23,9 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const fetchPrice = useServerFn(getBitcoinPriceEur);
-
   const { data: price } = useQuery({
     queryKey: ["bitcoin-price-eur"],
-    queryFn: fetchPrice,
+    queryFn: getBitcoinPriceEur,
     refetchInterval: 30_000,
     refetchIntervalInBackground: true,
   });
